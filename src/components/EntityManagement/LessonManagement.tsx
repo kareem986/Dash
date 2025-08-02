@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Plus, Search } from "lucide-react";
 import { Lesson, Course, Instructor } from "../../types";
 import { apiService } from "../../services/api";
@@ -9,6 +10,7 @@ import { Table } from "../UI/Table";
 import { LessonForm } from "../Forms/LessonForm";
 
 export const LessonManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export const LessonManagement: React.FC = () => {
       const response = await apiService.getAll("courses");
       setCourses(response.data || response || []);
     } catch (error) {
-      console.error("Failed to fetch courses:", error);
+      console.error(t('messages.failedToFetch'), error);
     }
   };
 
@@ -36,7 +38,7 @@ export const LessonManagement: React.FC = () => {
 
       setLessons(response.lessons || response || []);
     } catch (error) {
-      console.error("Failed to fetch lessons:", error);
+      console.error(t('messages.failedToFetch'), error);
     } finally {    
       setLoading(false);
     }
@@ -85,7 +87,7 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
       setIsModalOpen(false);
       setEditingLesson(null);
     } catch (error: any) {
-      console.error("Failed to save lesson:", error);
+      console.error(t('messages.failedToSave'), error);
       if (error.response?.status === 422) {
         setValidationErrors(error.response.data.errors);
       }
@@ -93,12 +95,12 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
   };
 
   const handleDelete = async (lesson: Lesson) => {
-    if (window.confirm("Are you sure you want to delete this lesson?")) {
+    if (window.confirm(t('validation.confirmDeleteLesson'))) {
       try {
         await apiService.delete("lessons", lesson.id!);
         await fetchLessons();
       } catch (error) {
-        console.error("Failed to delete lesson:", error);
+        console.error(t('messages.failedToDelete'), error);
       }
     }
   };
@@ -110,27 +112,27 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
   const columns = [
     {
       key: "lesson_title",
-      label: "Lesson Title",
+      label: t('lessons.lessonTitle'),
       render: (_: any, row: Lesson) => (
         <span className="text-sm text-gray-800">{row.lesson_title}</span>
       ),
     },
     {
       key: "lesson_date",
-      label: "Date",
+      label: t('lessons.date'),
     },
     {
       key: "instructors",
-      label: "Instructor",
+      label: t('lessons.instructor'),
       render: (_: any, row: Lesson) => (
         <span className="text-sm text-gray-700">
-          {row.instructors?.name || "—"}
+          {row.instructors?.name || t('common.notAvailable')}
         </span>
       ),
     },
     {
       key: "courses",
-      label: "Courses",
+      label: t('lessons.courses'),
       render: (_: any, row: Lesson) => (
         <div className="flex flex-col gap-1">
           {row.courses?.length > 0 ? (
@@ -140,7 +142,7 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
               </span>
             ))
           ) : (
-            <span className="text-gray-400">—</span>
+            <span className="text-gray-400">{t('common.notAvailable')}</span>
           )}
         </div>
       ),
@@ -157,7 +159,7 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
               size={20}
             />
             <Input
-              placeholder="Search lessons..."
+              placeholder={t('lessons.searchLessons')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -166,7 +168,7 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={20} className="mr-2" />
-          Add Lesson
+          {t('lessons.addLesson')}
         </Button>
       </div>
 
@@ -187,7 +189,7 @@ const createFormDataFromLesson = (lesson: Lesson): FormData => {
           setIsModalOpen(false);
           setEditingLesson(null);
         }}
-        title={editingLesson ? "Edit Lesson" : "Add New Lesson"}
+        title={editingLesson ? t('lessons.editLesson') : t('lessons.addLesson')}
         size="lg"
       >
         <LessonForm

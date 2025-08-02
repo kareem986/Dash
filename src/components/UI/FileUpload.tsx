@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, X, Image } from 'lucide-react';
 
 interface FileUploadProps {
@@ -20,6 +21,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   helperText,
   preview = true
 }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -139,10 +141,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <div className="text-center">
             <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
             <div className="text-sm text-gray-600">
-              <span className="font-medium text-[#0e4d3c]">Click to upload</span> or drag and drop
+              <span className="font-medium text-[#0e4d3c]">{t('fileUpload.clickToUpload')}</span> {t('fileUpload.dragAndDrop')}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              PNG, JPG, JPEG, WEBP up to 10MB
+              {t('fileUpload.fileTypes')}
             </p>
           </div>
         )}

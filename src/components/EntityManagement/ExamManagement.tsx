@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Plus, Search } from "lucide-react";
 import { Exam } from "../../types";
 import { apiService } from "../../services/api";
@@ -9,6 +10,7 @@ import { Table } from "../UI/Table";
 import { ExamForm } from "../Forms/ExamForm";
 
 export const ExamManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +26,7 @@ export const ExamManagement: React.FC = () => {
       const response = await apiService.getAll("exams");
       setExams(response.exams || []);
     } catch (error) {
-      console.error("Failed to fetch exams:", error);
+      console.error(t('messages.failedToFetch'), error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export const ExamManagement: React.FC = () => {
       setEditingExam(null);
       setValidationErrors({});
     } catch (error: any) {
-      console.error("Failed to save exam:", error);
+      console.error(t('messages.failedToSave'), error);
       if (error.response?.status === 422) {
         setValidationErrors(error.response.data.errors || {});
       }
@@ -55,12 +57,12 @@ export const ExamManagement: React.FC = () => {
   };
 
   const handleDelete = async (exam: Exam) => {
-    if (window.confirm("Are you sure you want to delete this exam?")) {
+    if (window.confirm(t('validation.confirmDeleteExam'))) {
       try {
         await apiService.delete("exams", exam.id!);
         await fetchExams();
       } catch (error) {
-        console.error("Failed to delete exam:", error);
+        console.error(t('messages.failedToDelete'), error);
       }
     }
   };
@@ -70,11 +72,11 @@ export const ExamManagement: React.FC = () => {
   );
 
   const columns = [
-    { key: "title", label: "Title" },
-    { key: "exam_date", label: "Date" },
-    { key: "max_mark", label: "Max Mark" },
-    { key: "passing_mark", label: "Passing Mark" },
-    { key: "course_id", label: "Course ID" },
+    { key: "title", label: t('exams.title') },
+    { key: "exam_date", label: t('exams.date') },
+    { key: "max_mark", label: t('exams.maxMark') },
+    { key: "passing_mark", label: t('exams.passingMark') },
+    { key: "course_id", label: t('exams.courseId') },
   ];
 
   return (
@@ -87,7 +89,7 @@ export const ExamManagement: React.FC = () => {
               size={20}
             />
             <Input
-              placeholder="Search exams..."
+              placeholder={t('exams.searchExams')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -96,7 +98,7 @@ export const ExamManagement: React.FC = () => {
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={20} className="mr-2" />
-          Add Exam
+          {t('exams.addExam')}
         </Button>
       </div>
 
@@ -117,7 +119,7 @@ export const ExamManagement: React.FC = () => {
           setIsModalOpen(false);
           setEditingExam(null);
         }}
-        title={editingExam ? "Edit Exam" : "Add New Exam"}
+        title={editingExam ? t('exams.editExam') : t('exams.addExam')}
         size="lg"
       >
         <ExamForm

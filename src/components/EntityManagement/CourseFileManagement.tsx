@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, FileText, Download } from 'lucide-react';
 import { CourseFile, Course } from '../../types';
 import { apiService } from '../../services/api';
@@ -9,6 +10,7 @@ import { Table } from '../UI/Table';
 import { CourseFileForm } from '../Forms/CourseFileForm';
 
 export const CourseFileManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [courseFiles, setCourseFiles] = useState<CourseFile[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ export const CourseFileManagement: React.FC = () => {
       setCourseFiles(courseFilesResponse.courseFiles || courseFilesResponse.data || []);
       setCourses(coursesResponse.courses || coursesResponse.data || []);
     } catch (error) {
-      console.error('Failed to fetch course files:', error);
+      console.error(t('messages.failedToFetch'), error);
     } finally {
       setLoading(false);
     }
@@ -48,17 +50,17 @@ export const CourseFileManagement: React.FC = () => {
       setIsModalOpen(false);
       setEditingCourseFile(null);
     } catch (error) {
-      console.error('Failed to save course file:', error);
+      console.error(t('messages.failedToSave'), error);
     }
   };
 
   const handleDelete = async (courseFile: CourseFile) => {
-    if (window.confirm('Are you sure you want to delete this course file?')) {
+    if (window.confirm(t('validation.confirmDeleteCourseFile'))) {
       try {
         await apiService.delete('courseFiles', courseFile.id!);
         await fetchCourseFiles();
       } catch (error) {
-        console.error('Failed to delete course file:', error);
+        console.error(t('messages.failedToDelete'), error);
       }
     }
   };
@@ -76,7 +78,7 @@ export const CourseFileManagement: React.FC = () => {
   const columns = [
     { 
       key: 'course_id', 
-      label: 'Course',
+      label: t('courseFiles.course'),
       render: (courseId: number) => (
         <span className="font-medium text-[#0e4d3c]">
           {getCourseTitle(courseId)}
@@ -85,7 +87,7 @@ export const CourseFileManagement: React.FC = () => {
     },
     { 
       key: 'file_name', 
-      label: 'File Name',
+      label: t('courseFiles.fileName'),
       render: (fileName: string) => (
         <div className="flex items-center space-x-2">
           <FileText className="w-4 h-4 text-gray-500" />
@@ -95,7 +97,7 @@ export const CourseFileManagement: React.FC = () => {
     },
     { 
       key: 'file_path', 
-      label: 'Actions',
+      label: t('common.actions'),
       render: (filePath: string, row: CourseFile) => (
         <div className="flex space-x-2">
           <Button
@@ -107,7 +109,7 @@ export const CourseFileManagement: React.FC = () => {
             }}
           >
             <Download size={16} className="mr-1" />
-            Download
+            {t('courseFiles.download')}
           </Button>
         </div>
       )
@@ -121,7 +123,7 @@ export const CourseFileManagement: React.FC = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <Input
-              placeholder="Search course files..."
+              placeholder={t('courseFiles.searchCourseFiles')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -130,7 +132,7 @@ export const CourseFileManagement: React.FC = () => {
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={20} className="mr-2" />
-          Add Course File
+          {t('courseFiles.addCourseFile')}
         </Button>
       </div>
 
@@ -151,7 +153,7 @@ export const CourseFileManagement: React.FC = () => {
           setIsModalOpen(false);
           setEditingCourseFile(null);
         }}
-        title={editingCourseFile ? 'Edit Course File' : 'Add New Course File'}
+        title={editingCourseFile ? t('courseFiles.editCourseFile') : t('courseFiles.addCourseFile')}
         size="lg"
       >
         <CourseFileForm

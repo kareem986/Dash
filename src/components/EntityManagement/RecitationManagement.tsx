@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Plus, Search } from "lucide-react";
 import { Recitation, Course, Lesson } from "../../types";
 import { apiService } from "../../services/api";
@@ -32,6 +32,7 @@ interface RecitationResponse {
 }
 
 export const RecitationManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [recitations, setRecitations] = useState<Recitation[]>([]);
   const [tahfeezCourses, setTahfeezCourses] = useState<Course[]>([]);
   const [courseLessons, setCourseLessons] = useState<Lesson[]>([]);
@@ -62,7 +63,7 @@ export const RecitationManagement: React.FC = () => {
       );
       setTahfeezCourses(tahfeezOnly);
     } catch (error) {
-      console.error("Failed to fetch Tahfeez courses:", error);
+      console.error(t('messages.failedToFetch'), error);
     }
   };
 
@@ -102,7 +103,7 @@ export const RecitationManagement: React.FC = () => {
 
       setRecitations(flatRecitations);
     } catch (error) {
-      console.error("Failed to fetch recitations by course:", error);
+      console.error(t('messages.failedToFetch'), error);
       setRecitations([]);
     } finally {
       setLoading(false);
@@ -179,7 +180,7 @@ export const RecitationManagement: React.FC = () => {
         await apiService.update("recitation", 0, updateData);
       } else {
         if (!selectedCourse || !recitationData.lesson_id) {
-          throw new Error("Course and lesson must be selected");
+          throw new Error(t('validation.courseAndLessonRequired'));
         }
 
         const requestData = {
@@ -241,7 +242,7 @@ export const RecitationManagement: React.FC = () => {
       setEditingRecitation(null);
       setSelectedStudent(null);
     } catch (error: any) {
-      console.error("Failed to save recitation:", error);
+      console.error(t('messages.failedToSave'), error);
       if (error.response?.status === 422) {
         setValidationErrors(error.response.data.errors);
       }
@@ -250,7 +251,7 @@ export const RecitationManagement: React.FC = () => {
 
   const handleDelete = async (recitation: Recitation) => {
     if (
-      window.confirm("Are you sure you want to delete this recitation record?")
+      window.confirm(t('validation.confirmDeleteRecitation'))
     ) {
       try {
         await apiService.delete("recitation", recitation.id!);
@@ -258,7 +259,7 @@ export const RecitationManagement: React.FC = () => {
           await fetchRecitationsByCourse(selectedCourse);
         }
       } catch (error) {
-        console.error("Failed to delete recitation:", error);
+        console.error(t('messages.failedToDelete'), error);
       }
     }
   };
@@ -280,33 +281,33 @@ export const RecitationManagement: React.FC = () => {
   const columns = [
     {
       key: "student_name",
-      label: "Student Name",
+      label: t('recitation.studentName'),
       render: (value: string) => (
-        <span className="font-medium text-gray-900">{value || "N/A"}</span>
+        <span className="font-medium text-gray-900">{value || t('common.notAvailable')}</span>
       ),
     },
     {
       key: "lesson_title",
-      label: "Lesson",
+      label: t('recitation.lesson'),
       render: (value: string, row: Recitation) => (
         <div>
-          <div className="font-medium">{value || "N/A"}</div>
+          <div className="font-medium">{value || t('common.notAvailable')}</div>
           <div className="text-sm text-gray-500">{row.lesson_date}</div>
         </div>
       ),
     },
     {
       key: "current_juz",
-      label: "Current Juz",
+      label: t('recitation.currentJuz'),
       render: (value: number, row: Recitation) => (
         <span className="text-sm">
-          Juz {value}, Page {row.current_juz_page}
+          {t('recitation.juz')} {value}, {t('recitation.page')} {row.current_juz_page}
         </span>
       ),
     },
     {
       key: "recitation_evaluation",
-      label: "Evaluation",
+      label: t('recitation.evaluation'),
       render: (value: string) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -319,25 +320,25 @@ export const RecitationManagement: React.FC = () => {
               : "bg-red-100 text-red-800"
           }`}
         >
-          {value}
+          {t(`recitation.${value.toLowerCase()}`)}
         </span>
       ),
     },
     {
       key: "recitation_per_page",
-      label: "Pages Recited",
+      label: t('recitation.pagesRecited'),
       render: (value: number[]) => (
         <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">
-          {value?.length || 0} pages
+          {value?.length || 0} {t('recitation.pages')}
         </span>
       ),
     },
     {
       key: "homework",
-      label: "Homework",
+      label: t('recitation.homework'),
       render: (value: number[]) => (
         <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
-          {value?.length || 0} assignments
+          {value?.length || 0} {t('recitation.assignments')}
         </span>
       ),
     },
@@ -348,7 +349,7 @@ export const RecitationManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Select
-            label="Select Tahfeez Course"
+            label={t('recitation.selectTahfeezCourse')}
             value={selectedCourse || ""}
             onChange={handleCourseChange}
             options={courseOptions}
@@ -361,7 +362,7 @@ export const RecitationManagement: React.FC = () => {
                 size={20}
               />
               <Input
-                placeholder="Search recitations..."
+                placeholder={t('recitation.searchRecitations')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"
@@ -371,7 +372,7 @@ export const RecitationManagement: React.FC = () => {
         </div>
         <Button onClick={() => setIsModalOpen(true)} disabled={!selectedCourse}>
           <Plus size={16} className="mr-2" />
-          Add Recitation
+          {t('recitation.addRecitation')}
         </Button>
       </div>
 
@@ -379,18 +380,18 @@ export const RecitationManagement: React.FC = () => {
       {selectedCourse && selectedCourseName && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Selected Course: {selectedCourseName}
+            {t('recitation.selectedCourse')}: {selectedCourseName}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="font-medium text-gray-600">
-                Available Lessons:
+                {t('recitation.availableLessons')}:
               </span>
               <p className="text-gray-800">{courseLessons.length}</p>
             </div>
             <div>
               <span className="font-medium text-gray-600">
-                Recitation Records:
+                {t('recitation.recitationRecords')}:
               </span>
               <p className="text-gray-800">{filteredRecitations.length}</p>
             </div>
@@ -403,7 +404,7 @@ export const RecitationManagement: React.FC = () => {
         <div className="text-center py-12">
           <div className="mx-auto h-12 w-12 text-gray-400 mb-4">📚</div>
           <p className="text-gray-500">
-            Select a Tahfeez course to see recitations.
+            {t('recitation.selectCourseMessage')}
           </p>
         </div>
       )}
@@ -427,7 +428,7 @@ export const RecitationManagement: React.FC = () => {
       {pendingRecitations.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-2 text-indigo-700">
-            {infoMessage || "Pending Recitations"}
+            {infoMessage || t('messages.pendingRecitations')}
           </h3>
           <Table
             data={pendingRecitations}
@@ -446,7 +447,7 @@ export const RecitationManagement: React.FC = () => {
           setEditingRecitation(null);
           setValidationErrors({});
         }}
-        title={editingRecitation ? "Edit Recitation" : "Add Recitation"}
+        title={editingRecitation ? t('recitation.editRecitation') : t('recitation.addRecitation')}
       >
         {Array.isArray(courseLessons) && (
           <>

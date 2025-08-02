@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Search, QrCode, CheckCircle, AlertTriangle } from "lucide-react";
 import axios from "axios";
 import { Attendance, Lesson, Student } from "../../types";
@@ -12,6 +13,7 @@ import { QRScanner } from "../UI/QRScanner";
 import { BASE_URL } from "../../constants";
 
 export const AttendanceManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [lessonsWithoutAttendance, setLessonsWithoutAttendance] = useState<Lesson[]>([]);
@@ -40,7 +42,7 @@ export const AttendanceManagement: React.FC = () => {
       await filterLessonsWithoutAttendance(allLessons);
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      setErrorMessage("Failed to fetch data. Please try again.");
+      setErrorMessage(t('messages.dataFetchError'));
     } finally {
       setLoading(false);
     }
@@ -146,7 +148,7 @@ export const AttendanceManagement: React.FC = () => {
       
       // Success message
       setSessionMessage(
-        `${res.data.message} (${res.data.count || 0} students enrolled)`
+        `${res.data.message} (${res.data.count || 0} ${t('messages.studentsEnrolled', { count: res.data.count || 0 })})`
       );
       
       // Remove from dropdown
@@ -157,7 +159,7 @@ export const AttendanceManagement: React.FC = () => {
       // Warning for invalid QR codes
       const invalidCount = res.data.attendance.length - validAttendance.length;
       if (invalidCount > 0) {
-        setErrorMessage(`Warning: ${invalidCount} student(s) have invalid QR codes and may not be able to scan attendance.`);
+        setErrorMessage(t('messages.invalidQrWarning', { count: invalidCount }));
       }
     }
 
@@ -167,7 +169,7 @@ export const AttendanceManagement: React.FC = () => {
     }, 5000);
   } catch (error: any) {
     console.error("Failed to create attendance session:", error);
-    setErrorMessage("Failed to create attendance session. Please try again.");
+    setErrorMessage(t('messages.createSessionError'));
     
     if (error.response) {
       console.error("🔴 Server responded with:", error.response.data);
@@ -232,12 +234,12 @@ export const AttendanceManagement: React.FC = () => {
           )
         );
 
-        setSuccessMessage("Attendance updated ✅");
+        setSuccessMessage(t('messages.attendanceMarked'));
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
       console.error("Failed to update attendance:", error);
-      setErrorMessage("Failed to update attendance. Please try again.");
+      setErrorMessage(t('messages.updateAttendanceError'));
     } finally {
       setIsQRModalOpen(false);
       setCurrentStudentId(null);
@@ -264,20 +266,20 @@ export const AttendanceManagement: React.FC = () => {
 
   const columns = [
     {
-      key: "student_name",
-      label: "Student Name",
+      key: "student_name", 
+      label: t('attendance.studentName'),
       render: (_value: any, record: Attendance) =>
-        record.student?.name ?? "N/A",
+        record.student?.name ?? t('common.notAvailable'),
     },
     {
       key: "student_email",
-      label: "Email",
+      label: t('students.email'),
       render: (_value: any, record: Attendance) =>
-        record.student?.email ?? "N/A",
+        record.student?.email ?? t('common.notAvailable'),
     },
     {
       key: "student_attendance",
-      label: "Status",
+      label: t('attendance.status'),
       render: (value: 0 | 1 | null) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -288,19 +290,19 @@ export const AttendanceManagement: React.FC = () => {
               : "bg-gray-100 text-gray-800"
           }`}
         >
-          {value === 1 ? "Present" : value === 0 ? "Absent" : "Not Set"}
+          {value === 1 ? t('attendance.present') : value === 0 ? t('attendance.absent') : t('attendance.notSet')}
         </span>
       ),
     },
     {
       key: "student_attendance_time",
-      label: "Time",
+      label: t('attendance.time'),
       render: (value: string | null) =>
-        value ? new Date(value).toLocaleTimeString() : "N/A",
+        value ? new Date(value).toLocaleTimeString() : t('common.notAvailable'),
     },
     {
       key: "qr_status",
-      label: "QR Status",
+      label: t('attendance.qrStatus'),
       render: (_value: any, record: Attendance) => {
         const hasValidQR = record.student?.qr_code && validateQRCode(record.student.qr_code);
         return (
@@ -311,14 +313,14 @@ export const AttendanceManagement: React.FC = () => {
                 : "bg-yellow-100 text-yellow-800"
             }`}
           >
-            {hasValidQR ? "Valid QR" : "No/Invalid QR"}
+            {hasValidQR ? t('attendance.validQr') : t('attendance.noInvalidQr')}
           </span>
         );
       },
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t('common.actions'),
       render: (_value: any, record: Attendance) => (
         <Button
           size="sm"
@@ -326,7 +328,7 @@ export const AttendanceManagement: React.FC = () => {
           disabled={record.student_attendance === 1}
         >
           <QrCode size={16} className="mr-1" />
-          {record.student_attendance === 1 ? "Marked" : "Scan QR"}
+          {record.student_attendance === 1 ? t('attendance.marked') : t('attendance.scanQr')}
         </Button>
       ),
     },
@@ -366,7 +368,7 @@ export const AttendanceManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <Select
-            label="Select Lesson (No Attendance Yet)"
+            label={t('attendance.selectLesson')}
             value={selectedLesson || ""}
             onChange={handleLessonChange}
             options={lessonOptions}
@@ -379,7 +381,7 @@ export const AttendanceManagement: React.FC = () => {
                 size={20}
               />
               <Input
-                placeholder="Search attendance..."
+                placeholder={t('attendance.searchAttendance')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-64"
@@ -393,22 +395,22 @@ export const AttendanceManagement: React.FC = () => {
       {selectedLesson && (
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Lesson Details
+            {t('attendance.lessonDetails')}
           </h3>
           {(() => {
             const lesson = lessons.find(l => l.id === selectedLesson);
             return lesson ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-gray-600">Title:</span>
+                  <span className="font-medium text-gray-600">{t('lessons.lessonTitle')}:</span>
                   <p className="text-gray-800">{lesson.lesson_title}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Date:</span>
+                  <span className="font-medium text-gray-600">{t('lessons.date')}:</span>
                   <p className="text-gray-800">{lesson.lesson_date}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Students Enrolled:</span>
+                  <span className="font-medium text-gray-600">{t('attendance.studentsEnrolled')}:</span>
                   <p className="text-gray-800">{filteredAttendance.length}</p>
                 </div>
               </div>
@@ -426,10 +428,10 @@ export const AttendanceManagement: React.FC = () => {
         <div className="text-center py-12">
           <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            All Lessons Have Attendance Records
+            {t('attendance.allLessonsHaveAttendance')}
           </h3>
           <p className="text-gray-500">
-            All available lessons already have attendance records created.
+            {t('attendance.allLessonsMessage')}
           </p>
         </div>
       )}
@@ -440,7 +442,7 @@ export const AttendanceManagement: React.FC = () => {
           setIsQRModalOpen(false);
           setCurrentStudentId(null);
         }}
-        title="Scan QR Code for Attendance"
+        title={t('attendance.scanQrForAttendance')}
         size="md"
       >
         <QRScanner onScan={handleQRScan} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Plus, Search } from "lucide-react";
 import { Instructor } from "../../types";
 import { apiService } from "../../services/api";
@@ -9,6 +10,7 @@ import { Table } from "../UI/Table";
 import { InstructorForm } from "../Forms/InstructorForm";
 
 export const InstructorManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,7 +29,7 @@ export const InstructorManagement: React.FC = () => {
       console.log("✅ instructors response:", response);
       setInstructors(response?.instructors ?? []);
     } catch (error) {
-      console.error("Failed to fetch instructors:", error);
+      console.error(t('messages.failedToFetch'), error);
       setInstructors([]);
     } finally {
       setLoading(false);
@@ -55,7 +57,7 @@ export const InstructorManagement: React.FC = () => {
       setIsModalOpen(false);
       setEditingInstructor(null);
     } catch (error: any) {
-      console.error("Failed to save instructor:", error);
+      console.error(t('messages.failedToSave'), error);
       if (error.response?.status === 422) {
         setValidationErrors(error.response.data.errors);
       }
@@ -63,12 +65,12 @@ export const InstructorManagement: React.FC = () => {
   };
 
   const handleDelete = async (instructor: Instructor) => {
-    if (window.confirm("Are you sure you want to delete this instructor?")) {
+    if (window.confirm(t('validation.confirmDeleteInstructor'))) {
       try {
         await apiService.delete("instructors", instructor.id!);
         await fetchInstructors();
       } catch (error) {
-        console.error("Failed to delete instructor:", error);
+        console.error(t('messages.failedToDelete'), error);
       }
     }
   };
@@ -85,7 +87,7 @@ export const InstructorManagement: React.FC = () => {
   const columns = [
     {
       key: "name",
-      label: "Name",
+      label: t('instructors.name'),
       render: (value: string, row: Instructor) => (
         <div className="flex items-center space-x-3">
           {row.instructor_img ? (
@@ -101,11 +103,11 @@ export const InstructorManagement: React.FC = () => {
         </div>
       ),
     },
-    { key: "email", label: "Email" },
-    { key: "phone_number", label: "Phone" },
+    { key: "email", label: t('instructors.email') },
+    { key: "phone_number", label: t('instructors.phone') },
     {
       key: "religious_qualifications",
-      label: "Qualifications",
+      label: t('instructors.qualifications'),
       render: (value: string[] | undefined) => {
         const quals = value ?? [];
         return (
@@ -120,7 +122,7 @@ export const InstructorManagement: React.FC = () => {
             ))}
             {quals.length > 2 && (
               <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-                +{quals.length - 2} more
+                +{quals.length - 2} {t('instructors.more')}
               </span>
             )}
           </div>
@@ -129,12 +131,12 @@ export const InstructorManagement: React.FC = () => {
     },
     {
       key: "quran_memorized_parts",
-      label: "Memorized Parts",
+      label: t('instructors.memorizedParts'),
       render: (value: number[] | undefined) => {
         const parts = value ?? [];
         return (
           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-            {parts.length} parts
+            {parts.length} {t('instructors.parts')}
           </span>
         );
       },
@@ -151,7 +153,7 @@ export const InstructorManagement: React.FC = () => {
               size={20}
             />
             <Input
-              placeholder="Search instructors..."
+              placeholder={t('instructors.searchInstructors')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-64"
@@ -160,7 +162,7 @@ export const InstructorManagement: React.FC = () => {
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={20} className="mr-2" />
-          Add Instructor
+          {t('instructors.addInstructor')}
         </Button>
       </div>
 
@@ -181,7 +183,7 @@ export const InstructorManagement: React.FC = () => {
           setIsModalOpen(false);
           setEditingInstructor(null);
         }}
-        title={editingInstructor ? "Edit Instructor" : "Add New Instructor"}
+        title={editingInstructor ? t('instructors.editInstructor') : t('instructors.addInstructor')}
         size="lg"
       >
         <InstructorForm
